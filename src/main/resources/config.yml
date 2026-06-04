@@ -1,0 +1,7 @@
+# 近距離チャット設定
+# very-close: とても近くのしきい値（ブロック）
+very-close: 5
+# close: 近くのしきい値（ブロック）
+close: 15
+# max-radius: 最大可視距離（ブロック）。/setradius で変更可能
+max-radius: 25
