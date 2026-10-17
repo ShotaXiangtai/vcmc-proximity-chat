@@ -1,19 +1,6 @@
 name: ProximityChat
 version: 1.0.0
 main: com.example.proximitychat.ProximityChat
-api-version: '26.1'
+api-version: '26.2'
 folia-supported: true
-authors:
-  - Author
-description: 近距離チャットプラグイン（段階表示）
-
-permissions:
-  proximitychat.announce:
-    description: /announce コマンドを使用できます
-    default: op
-  proximitychat.setradius:
-    description: /setradius コマンドを使用できます
-    default: op
-  proximitychat.status:
-    description: /pcstatus コマンドを使用できます
-    default: true
+description: 'Proximity chat plugin for Paper/Folia'
