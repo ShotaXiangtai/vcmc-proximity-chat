@@ -27,7 +27,7 @@ Folia 26.3 向けの近距離チャットプラグインです。
 |---|---|---|---|
 | `/announce <メッセージ>` | サーバー全体にアナウンスを送信します | `proximitychat.announce` | OP |
 | `/setradius <数値>` | チャットの最大可視距離を変更します | `proximitychat.setradius` | OP |
-| `/pcreload` | `config.yml` を再読み込みします | `proximitychat.reload` | OP |
+| `/pcreload` | `config.yml` と `lang` フォルダを再読み込みします | `proximitychat.reload` | OP |
 | `/pcstatus` | 現在の距離のしきい値を確認します | `proximitychat.status` | 全員 |
 
 ## 設定
@@ -42,11 +42,29 @@ max-radius: 25   # 最大可視距離（ブロック）。/setradius で変更�
 
 不正な値は警告を出して補正します（`max-radius` は 1 以上、`close` は `very-close` 以上）。
 
+## 多言語対応
+
+プレイヤーのクライアントの言語設定に合わせて、メッセージを自動で切り替えます。ゲーム中に言語を変更すると、次のメッセージから反映されます。
+
+| クライアントの言語 | 表示する言語 | 文面の場所 |
+|---|---|---|
+| 日本語 | 日本語 | `config.yml` の `messages` |
+| English（各地域） | English | `lang/en.yml` |
+| 简体中文 | 简体中文 | `lang/zh_cn.yml` |
+| 繁體中文（台灣）、文言 | 繁體中文（台灣） | `lang/zh_tw.yml` |
+| 繁體中文（香港） | 繁體中文（香港） | `lang/zh_hk.yml` |
+| 上記以外 | English | `lang/en.yml` |
+
+繁體中文（香港）の文面は広東語で書いています。コンソールへのメッセージとログは日本語のままです。
+
+`lang` フォルダのファイルは初回起動時に作られます。編集して `/pcreload` を実行すると反映されます。ファイルに無いキーは jar 内の既定の文面を使います。
+
 ## コード構成
 
 - `ProximityChat.kt`: メインクラス。設定の読み込みと、Brigadier でのコマンド登録。
 - `ChatListener.kt`: チャットを止めて、距離に応じて配り直します。
 - `ChatRange.kt`: 距離の判定と設定値の確認。サーバーがなくてもテストできます。
+- `Messages.kt`, `i18n/`: 受け取る人の言語で文面を作ります。
 
 ## ビルド
 

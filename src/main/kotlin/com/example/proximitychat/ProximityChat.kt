@@ -5,8 +5,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.plugin.java.JavaPlugin
 
 @Suppress("UnstableApiUsage")
@@ -16,10 +14,15 @@ class ProximityChat : JavaPlugin() {
     var range = ChatRange(ChatRange.DEFAULT_VERY_CLOSE, ChatRange.DEFAULT_CLOSE, ChatRange.DEFAULT_MAX_RADIUS)
         private set
 
+    lateinit var messages: Messages
+        private set
+
     private val configLock = Any()
 
     override fun onEnable() {
         saveDefaultConfig()
+        messages = Messages(this)
+        messages.reload()
         loadRange()
 
         server.pluginManager.registerEvents(ChatListener(this), this)
@@ -34,17 +37,12 @@ class ProximityChat : JavaPlugin() {
                     .then(
                         Commands.argument("message", StringArgumentType.greedyString())
                             .executes { ctx ->
-                                val msg = StringArgumentType.getString(ctx, "message")
-                                val announcement = Component.text("[ANNOUNCEMENT] ", NamedTextColor.RED)
-                                    .append(Component.text(msg, NamedTextColor.WHITE))
-                                ctx.source.sender.server.broadcast(announcement)
+                                messages.broadcast("announce", "message" to StringArgumentType.getString(ctx, "message"))
                                 Command.SINGLE_SUCCESS
                             },
                     )
                     .executes { ctx ->
-                        ctx.source.sender.sendMessage(
-                            Component.text("使用方法: /announce <メッセージ>", NamedTextColor.RED),
-                        )
+                        messages.send(ctx.source.sender, "announce-usage")
                         Command.SINGLE_SUCCESS
                     }
                     .build(),
@@ -60,17 +58,12 @@ class ProximityChat : JavaPlugin() {
                             .executes { ctx ->
                                 val radius = IntegerArgumentType.getInteger(ctx, "radius")
                                 setMaxRadius(radius)
-                                val msg = Component.text("[System] チャット可視距離を ", NamedTextColor.YELLOW)
-                                    .append(Component.text("$radius ", NamedTextColor.GOLD))
-                                    .append(Component.text("ブロックに変更しました。", NamedTextColor.YELLOW))
-                                ctx.source.sender.server.broadcast(msg)
+                                messages.broadcast("radius-changed", "radius" to radius.toString())
                                 Command.SINGLE_SUCCESS
                             },
                     )
                     .executes { ctx ->
-                        ctx.source.sender.sendMessage(
-                            Component.text("使用方法: /setradius <数値>", NamedTextColor.RED),
-                        )
+                        messages.send(ctx.source.sender, "setradius-usage")
                         Command.SINGLE_SUCCESS
                     }
                     .build(),
@@ -84,17 +77,13 @@ class ProximityChat : JavaPlugin() {
                     .executes { ctx ->
                         val sender = ctx.source.sender
                         val current = range
-                        sender.sendMessage(
-                            Component.text("[ProximityChat] 現在の最大距離: ", NamedTextColor.YELLOW)
-                                .append(Component.text("${current.maxRadius} ブロック", NamedTextColor.GOLD)),
-                        )
-                        sender.sendMessage(
-                            Component.text("段階: ", NamedTextColor.GRAY)
-                                .append(Component.text("とても近く <= ${current.veryClose}ブロック", NamedTextColor.GREEN))
-                                .append(Component.text(" / ", NamedTextColor.GRAY))
-                                .append(Component.text("近く <= ${current.close}ブロック", NamedTextColor.YELLOW))
-                                .append(Component.text(" / ", NamedTextColor.GRAY))
-                                .append(Component.text("周辺 <= ${current.maxRadius}ブロック", NamedTextColor.GRAY)),
+                        messages.send(sender, "status-radius", "radius" to current.maxRadius.toString())
+                        messages.send(
+                            sender,
+                            "status-tiers",
+                            "very_close" to current.veryClose.toString(),
+                            "close" to current.close.toString(),
+                            "radius" to current.maxRadius.toString(),
                         )
                         Command.SINGLE_SUCCESS
                     }
@@ -108,9 +97,8 @@ class ProximityChat : JavaPlugin() {
                     .requires { src -> src.sender.hasPermission(PERM_RELOAD) }
                     .executes { ctx ->
                         loadRange()
-                        ctx.source.sender.sendMessage(
-                            Component.text("[ProximityChat] 設定を再読み込みしました。", NamedTextColor.GREEN),
-                        )
+                        messages.reload()
+                        messages.send(ctx.source.sender, "reloaded")
                         Command.SINGLE_SUCCESS
                     }
                     .build(),
