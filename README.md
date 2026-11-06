@@ -1,50 +1,59 @@
 # ProximityChat
 
-Foliaに完全対応した、Paper/Foliaサーバー向けの近距離チャットプラグインです。
-プレイヤー間の距離に応じてチャットの表示（接頭辞と色）が3段階に変化します。
+Folia 26.3 向けの近距離チャットプラグインです。
+プレイヤー間の距離に応じてチャットの表示（接頭辞と色）が 3 段階に変化し、最大距離より遠いプレイヤーには届きません。
 
-## 概要 (Overview)
-このプラグインはサーバー内のチャットを近距離チャットに制限します。
-Kyori Adventure APIを活用してリッチなテキストコンポーネントを生成し、Foliaの `EntityScheduler` を利用することで、マルチスレッド環境下でも安全にプレイヤーのロケーションを計算し、チャットを配信します。
-また、モダンなPaperの `LifecycleEventManager` (Brigadier) を用いたコマンド登録を実装しています。
+## 動作環境
 
-## 機能 (Features)
-- **距離に基づく3段階のチャット表示**:
-  - `[とても近く]` (緑色): デフォルト 5ブロック以内
-  - `[近く]` (黄色): デフォルト 15ブロック以内
-  - `[周辺]` (灰色): デフォルト 25ブロック以内
-- **Folia対応**: `GlobalRegionScheduler` と `EntityScheduler` を利用したスレッドセーフな実装。
-- **動的設定変更**: コマンドからチャットの最大可視距離をリアルタイムに変更可能。
+| 項目 | バージョン |
+|---|---|
+| サーバー | Folia 26.3（`folia-api 26.3.build.6-alpha` でビルド） |
+| Java | 25 以上 |
+
+## 機能
+
+- **距離に基づく 3 段階のチャット表示**
+  - `[とても近く]` (緑色): デフォルト 5 ブロック以内
+  - `[近く]` (黄色): デフォルト 15 ブロック以内
+  - `[周辺]` (灰色): デフォルト 25 ブロック以内
+- **Folia 対応**: 位置の読み取りとメッセージの送信を、それぞれのプレイヤーのリージョンで行います。
+- **他のプラグインとの連携**: ルール未同意やミュートなど、他のプラグインが止めたチャットは配りません。
+- **動的設定変更**: コマンドからチャットの最大可視距離を変更できます。変更は `config.yml` に保存されます。
 - **全体アナウンス**: 運営用のグローバルチャット機能（`/announce`）。
 
-## コマンド (Commands)
-| コマンド | 説明 | 権限 |
-| --- | --- | --- |
-| `/announce <メッセージ>` | サーバー全体にアナウンスを送信します | `proximitychat.announce` (OP) |
-| `/setradius <数値>` | チャットの最大可視距離を変更します | `proximitychat.setradius` (OP) |
-| `/pcstatus` | 現在の近距離チャット設定（距離のしきい値）を確認します | `proximitychat.status` (全員) |
+## コマンド
 
-## パーミッション (Permissions)
-- `proximitychat.announce` : `/announce` コマンドの実行権限 (デフォルト: op)
-- `proximitychat.setradius` : `/setradius` コマンドの実行権限 (デフォルト: op)
-- `proximitychat.status` : `/pcstatus` コマンドの実行権限 (デフォルト: true)
+| コマンド | 説明 | 権限 | 既定 |
+|---|---|---|---|
+| `/announce <メッセージ>` | サーバー全体にアナウンスを送信します | `proximitychat.announce` | OP |
+| `/setradius <数値>` | チャットの最大可視距離を変更します | `proximitychat.setradius` | OP |
+| `/pcreload` | `config.yml` を再読み込みします | `proximitychat.reload` | OP |
+| `/pcstatus` | 現在の距離のしきい値を確認します | `proximitychat.status` | 全員 |
 
-## 設定 (Configuration)
-`config.yml` にて以下の設定を変更できます。
+## 設定
+
+`config.yml` で次の値を変更できます。
+
 ```yaml
-# 近距離チャット設定
 very-close: 5    # 「とても近く」のしきい値（ブロック）
 close: 15        # 「近く」のしきい値（ブロック）
 max-radius: 25   # 最大可視距離（ブロック）。/setradius で変更可能
 ```
 
-## コード構成 (Code Structure)
-- **`ProximityChat.java`**
-  - プラグインのメインクラス。
-  - `config.yml` の読み込みおよび設定値の保持。
-  - Paperの `LifecycleEventManager` を使用した Brigadier コマンドの登録。
-  - `GlobalRegionScheduler` を使用した非同期での設定保存。
-- **`ChatListener.java`**
-  - `AsyncChatEvent` をリッスンし、デフォルトのチャットをキャンセル。
-  - 送信者と受信者のロケーションをそれぞれの `EntityScheduler` を介してスレッドセーフに取得し、距離を計算。
-  - 距離に応じた Kyori Adventure `Component` を生成して送信。MiniMessage インジェクションを防ぐためのプレーンテキスト化も実施。
+不正な値は警告を出して補正します（`max-radius` は 1 以上、`close` は `very-close` 以上）。
+
+## コード構成
+
+- `ProximityChat.kt`: メインクラス。設定の読み込みと、Brigadier でのコマンド登録。
+- `ChatListener.kt`: チャットを止めて、距離に応じて配り直します。
+- `ChatRange.kt`: 距離の判定と設定値の確認。サーバーがなくてもテストできます。
+
+## ビルド
+
+Java 25 が必要です。
+
+```
+mvn package
+```
+
+`target/ProximityChat.jar` が生成されます。

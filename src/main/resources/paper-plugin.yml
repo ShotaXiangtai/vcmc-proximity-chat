@@ -1,6 +1,20 @@
 name: ProximityChat
-version: 1.0.0
+version: '${project.version}'
 main: com.example.proximitychat.ProximityChat
-api-version: '26.2'
+api-version: '26.3'
 folia-supported: true
-description: 'Proximity chat plugin for Paper/Folia'
+description: 'Proximity chat plugin for Folia'
+
+permissions:
+  proximitychat.announce:
+    description: '/announce で全員にアナウンスする'
+    default: op
+  proximitychat.setradius:
+    description: '/setradius でチャットの最大可視距離を変更する'
+    default: op
+  proximitychat.reload:
+    description: '/pcreload で設定を再読み込みする'
+    default: op
+  proximitychat.status:
+    description: '/pcstatus で現在の設定を確認する'
+    default: true
