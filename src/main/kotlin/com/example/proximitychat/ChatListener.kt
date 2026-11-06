@@ -4,51 +4,53 @@ import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import org.bukkit.Location
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 
 class ChatListener(private val plugin: ProximityChat) : Listener {
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    /**
+     * チャットを止めて距離に応じて配り直す。
+     * ルール未同意やミュートなど、他のプラグインが止めたチャットを配らないよう、判定が出そろう HIGHEST で動かす。
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onChat(event: AsyncChatEvent) {
         event.isCancelled = true
 
         val sender = event.player
         val playerName = sender.name
         val rawMessage = PlainTextComponentSerializer.plainText().serialize(event.message())
-        plugin.logger.info("[ProximityChat] $playerName: $rawMessage")
+        plugin.logger.info("$playerName: $rawMessage")
 
-        val veryClose = plugin.veryClose
-        val close = plugin.close
-        val maxRadius = plugin.maxRadius
+        val range = plugin.range
 
-        // Folia: sender のリージョンスレッドで位置とワールドを取得
+        // 位置はそのプレイヤーのリージョンでしか正しく読めないので、送信者 → 各受信者の順に移って判定する。
         sender.scheduler.run(plugin, { _ ->
-            val senderLoc = sender.location
-            val senderWorld = sender.world
-
+            val origin = sender.location
             for (receiver in plugin.server.onlinePlayers) {
-                // Folia: receiver のリージョンスレッドで距離計算とメッセージ送信
                 receiver.scheduler.run(plugin, { _ ->
-                    if (receiver.world != senderWorld) return@run
-
-                    val distance = senderLoc.distance(receiver.location)
-                    if (distance > maxRadius) return@run
-
-                    val prefix = when {
-                        distance <= veryClose -> Component.text("[とても近く] ", NamedTextColor.GREEN)
-                        distance <= close -> Component.text("[近く] ", NamedTextColor.YELLOW)
-                        else -> Component.text("[周辺] ", NamedTextColor.GRAY)
-                    }
-
-                    val formatted = prefix
-                        .append(Component.text("$playerName: ", NamedTextColor.WHITE))
-                        .append(Component.text(rawMessage, NamedTextColor.WHITE))
-
-                    receiver.sendMessage(formatted)
+                    deliver(receiver, origin, range, playerName, rawMessage)
                 }, null)
             }
         }, null)
+    }
+
+    private fun deliver(receiver: Player, origin: Location, range: ChatRange, playerName: String, message: String) {
+        val location = receiver.location
+        if (location.world != origin.world) return
+        val tier = range.tierFor(origin.distanceSquared(location)) ?: return
+        val prefix = when (tier) {
+            ChatTier.VERY_CLOSE -> Component.text("[とても近く] ", NamedTextColor.GREEN)
+            ChatTier.CLOSE -> Component.text("[近く] ", NamedTextColor.YELLOW)
+            ChatTier.AROUND -> Component.text("[周辺] ", NamedTextColor.GRAY)
+        }
+        receiver.sendMessage(
+            prefix
+                .append(Component.text("$playerName: ", NamedTextColor.WHITE))
+                .append(Component.text(message, NamedTextColor.WHITE)),
+        )
     }
 }
