@@ -1,8 +1,6 @@
 package com.example.proximitychat
 
 import io.papermc.paper.event.player.AsyncChatEvent
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Location
 import org.bukkit.entity.Player
@@ -42,15 +40,11 @@ class ChatListener(private val plugin: ProximityChat) : Listener {
         val location = receiver.location
         if (location.world != origin.world) return
         val tier = range.tierFor(origin.distanceSquared(location)) ?: return
-        val prefix = when (tier) {
-            ChatTier.VERY_CLOSE -> Component.text("[とても近く] ", NamedTextColor.GREEN)
-            ChatTier.CLOSE -> Component.text("[近く] ", NamedTextColor.YELLOW)
-            ChatTier.AROUND -> Component.text("[周辺] ", NamedTextColor.GRAY)
+        val key = when (tier) {
+            ChatTier.VERY_CLOSE -> "chat-very-close"
+            ChatTier.CLOSE -> "chat-close"
+            ChatTier.AROUND -> "chat-around"
         }
-        receiver.sendMessage(
-            prefix
-                .append(Component.text("$playerName: ", NamedTextColor.WHITE))
-                .append(Component.text(message, NamedTextColor.WHITE)),
-        )
+        plugin.messages.send(receiver, key, "player" to playerName, "message" to message)
     }
 }

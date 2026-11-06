@@ -5,3 +5,18 @@ very-close: 5
 close: 15
 # max-radius: 最大可視距離（ブロック）。/setradius で変更可能
 max-radius: 25
+
+# 日本語の文面（MiniMessage 形式）
+# ほかの言語の文面は lang フォルダにあります。en.yml: English、zh_cn.yml: 简体中文、zh_tw.yml: 繁體中文（台灣）、zh_hk.yml: 繁體中文（香港）
+# プレイヤーのクライアントの言語設定に合わせて自動で切り替わります。
+messages:
+  chat-very-close: "<green>[とても近く] <white><player>: <message>"
+  chat-close: "<yellow>[近く] <white><player>: <message>"
+  chat-around: "<gray>[周辺] <white><player>: <message>"
+  announce: "<red>[ANNOUNCEMENT] <white><message>"
+  announce-usage: '<red>使用方法: /announce \<メッセージ>'
+  setradius-usage: '<red>使用方法: /setradius \<数値>'
+  radius-changed: "<yellow>[System] チャット可視距離を <gold><radius> </gold>ブロックに変更しました。"
+  status-radius: "<yellow>[ProximityChat] 現在の最大距離: <gold><radius> ブロック"
+  status-tiers: "<gray>段階: <green>とても近く <very_close>ブロック以内<gray> / <yellow>近く <close>ブロック以内<gray> / 周辺 <radius>ブロック以内"
+  reloaded: "<green>[ProximityChat] 設定を再読み込みしました。"

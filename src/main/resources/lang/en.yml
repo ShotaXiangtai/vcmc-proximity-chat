@@ -1,0 +1,11 @@
+# ProximityChat: English
+chat-very-close: "<green>[Very close] <white><player>: <message>"
+chat-close: "<yellow>[Close] <white><player>: <message>"
+chat-around: "<gray>[Nearby] <white><player>: <message>"
+announce: "<red>[ANNOUNCEMENT] <white><message>"
+announce-usage: '<red>Usage: /announce \<message>'
+setradius-usage: '<red>Usage: /setradius \<number>'
+radius-changed: "<yellow>[System] Chat range changed to <gold><radius></gold> blocks."
+status-radius: "<yellow>[ProximityChat] Current max range: <gold><radius> blocks"
+status-tiers: "<gray>Tiers: <green>very close within <very_close> blocks<gray> / <yellow>close within <close> blocks<gray> / nearby within <radius> blocks"
+reloaded: "<green>[ProximityChat] Settings reloaded."

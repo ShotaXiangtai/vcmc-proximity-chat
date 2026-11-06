@@ -1,0 +1,11 @@
+# ProximityChat：简体中文
+chat-very-close: "<green>[非常近] <white><player>: <message>"
+chat-close: "<yellow>[近处] <white><player>: <message>"
+chat-around: "<gray>[周围] <white><player>: <message>"
+announce: "<red>[公告] <white><message>"
+announce-usage: '<red>用法：/announce \<消息>'
+setradius-usage: '<red>用法：/setradius \<数值>'
+radius-changed: "<yellow>[系统] 聊天可见距离已更改为 <gold><radius></gold> 格。"
+status-radius: "<yellow>[ProximityChat] 当前最大距离：<gold><radius> 格"
+status-tiers: "<gray>范围：<green>非常近 <very_close> 格以内<gray> / <yellow>近处 <close> 格以内<gray> / 周围 <radius> 格以内"
+reloaded: "<green>[ProximityChat] 已重新加载设置。"
